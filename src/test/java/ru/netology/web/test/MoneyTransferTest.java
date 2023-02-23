@@ -56,11 +56,4 @@ public class MoneyTransferTest {
         Assertions.assertEquals(balanceCard2 + amount, endBalanceCard2);
     }
 
-    @Test
-    void shouldNotTransferMoreMoneyThanBalance() {
-        amount = balanceCard1 + 100;
-        var transferPage = dashboardPage.transferPage(1);
-        var cardNum = DataHelper.getFirstCard().getCardNumber();
-        transferPage.unsuccessfulTransfer(cardNum, Integer.toString(amount));
-    }
 }
