@@ -9,14 +9,11 @@ import ru.netology.web.page.DashboardPage;
 import ru.netology.web.page.LoginPage;
 
 import static com.codeborne.selenide.Selenide.open;
+import static ru.netology.web.data.DataHelper.*;
 
 public class MoneyTransferTest {
     DashboardPage dashboardPage;
-    int amount;
-    int balanceCard1;
-    int balanceCard2;
-    int endBalanceCard1;
-    int endBalanceCard2;
+
 
 
     @BeforeEach
@@ -28,39 +25,52 @@ public class MoneyTransferTest {
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
         dashboardPage = verificationPage.validVerify(verificationCode);
-        balanceCard1 = dashboardPage.getCardBalance(0);
-        balanceCard2 = dashboardPage.getCardBalance(1);
     }
 
     @Test
     void shouldTransferMoneyFromSecondCardToFirstCard() {
-        amount = 100;
+        var firstCardBalance = dashboardPage.getCardBalance(0);
+        var secondCardBalance = dashboardPage.getCardBalance(1);
+        var amount = generateValidAmount(secondCardBalance);
         var transferPage = dashboardPage.transferPage(0);
         var cardNum = DataHelper.getSecondCard().getCardNumber();
-        var validTransfer = transferPage.validTransfer(cardNum, Integer.toString(amount));
-        endBalanceCard1 = dashboardPage.getCardBalance(0);
-        endBalanceCard2 = dashboardPage.getCardBalance(1);
-        Assertions.assertEquals(balanceCard1 + amount, endBalanceCard1);
-        Assertions.assertEquals(balanceCard2 - amount, endBalanceCard2);
+        var validTransfer = transferPage.validTransfer(Integer.toString(amount), cardNum);
+        var expectedBalanceFirstCard = firstCardBalance + amount;
+        var expectedBalanceSecondCard = secondCardBalance - amount;
+        var actualFirstCardBalance = dashboardPage.getCardBalance(0);
+        var actualSecondCardBalance = dashboardPage.getCardBalance(1);
+        Assertions.assertEquals(expectedBalanceFirstCard,actualFirstCardBalance);
+        Assertions.assertEquals(expectedBalanceSecondCard, actualSecondCardBalance);
     }
 
     @Test
     void shouldTransferMoneyFromFirstCardToSecondCard() {
-        amount = 500;
+        var firstCardBalance = dashboardPage.getCardBalance(0);
+        var secondCardBalance = dashboardPage.getCardBalance(1);
+        var amount = generateValidAmount(firstCardBalance);
         var transferPage = dashboardPage.transferPage(1);
         var cardNum = DataHelper.getFirstCard().getCardNumber();
-        var validTransfer = transferPage.validTransfer(cardNum, Integer.toString(amount));
-        endBalanceCard1 = dashboardPage.getCardBalance(0);
-        endBalanceCard2 = dashboardPage.getCardBalance(1);
-        Assertions.assertEquals(balanceCard1 - amount, endBalanceCard1);
-        Assertions.assertEquals(balanceCard2 + amount, endBalanceCard2);
+        var validTransfer = transferPage.validTransfer(Integer.toString(amount), cardNum);
+        var expectedBalanceFirstCard = firstCardBalance - amount;
+        var expectedBalanceSecondCard = secondCardBalance + amount;
+        var actualFirstCardBalance = dashboardPage.getCardBalance(0);
+        var actualSecondCardBalance = dashboardPage.getCardBalance(1);
+        Assertions.assertEquals(expectedBalanceFirstCard,actualFirstCardBalance);
+        Assertions.assertEquals(expectedBalanceSecondCard, actualSecondCardBalance);
     }
 
     @Test
     void shouldNotTransferMoreMoneyThanBalance() {
-        amount = balanceCard1 + 100;
-        var transferPage = dashboardPage.transferPage(1);
-        var cardNum = DataHelper.getFirstCard().getCardNumber();
-        transferPage.unsuccessfulTransfer(cardNum, Integer.toString(amount));
+        var firstCardBalance = dashboardPage.getCardBalance(0);
+        var secondCardBalance = dashboardPage.getCardBalance(1);
+        var amount = generateInvalidAmount(secondCardBalance);
+        var transferPage = dashboardPage.transferPage(0);
+        var cardNum = getSecondCard().getCardNumber();
+        var validTransfer = transferPage.validTransfer(Integer.toString(amount), cardNum);
+        transferPage.unsuccessfulTransfer("Ошибка!");
+        var actualFirstCardBalance = dashboardPage.getCardBalance(0);
+        var actualSecondCardBalance = dashboardPage.getCardBalance(1);
+        Assertions.assertEquals(firstCardBalance, actualFirstCardBalance);
+        Assertions.assertEquals(secondCardBalance, actualSecondCardBalance);
     }
 }

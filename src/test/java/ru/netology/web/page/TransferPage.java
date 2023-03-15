@@ -2,6 +2,7 @@ package ru.netology.web.page;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import ru.netology.web.data.DataHelper;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -17,18 +18,19 @@ public class TransferPage {
         heading.shouldBe(Condition.visible);
     }
 
-    public DashboardPage validTransfer(String cardNum, String amount) {
-        sumField.setValue(amount);
-        fromField.setValue(cardNum);
-        transferButton.click();
+    public DashboardPage validTransfer(String amount, String cardInfo) {
+        makeTransfer(amount, cardInfo);
         return new DashboardPage();
     }
 
-    public void unsuccessfulTransfer(String cardNum, String amount) {
+    public void makeTransfer(String amount, String cardInfo) {
         sumField.setValue(amount);
-        fromField.setValue(cardNum);
+        fromField.setValue(cardInfo);
         transferButton.click();
-        errorNotification.shouldBe(Condition.visible);
+    }
+
+    public void unsuccessfulTransfer(String expectedText) {
+        errorNotification.shouldHave(Condition.exactText(expectedText)).shouldBe(Condition.visible);
     }
 
     public void cancelTransfer() {
